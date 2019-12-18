@@ -1320,15 +1320,16 @@ class DB
             $sth = self::$pdo->prepare('
                 INSERT IGNORE INTO `message_output`
                 (
-                    `chat_id`, `user_id`, `action`, `date`, `reply_to_message_id`, `text`
+                    `chat_id`, `user_id`, `action`, `date`, `reply_to_message_id`, `text`, `data`
                 ) VALUES (
-                    :chat_id, :user_id, :action, :date, :reply_to_message_id, :text
+                    :chat_id, :user_id, :action, :date, :reply_to_message_id, :text, :data
                 )
             ');
 
-            $user_id = null;
             $date    = date('Y-m-d H:i:s');
 
+            $text = $data['text'] ?? null;
+            $user_id = $data['user_id'] ?? null;
             $chat_id = $data['chat_id'] ?? null;
             $reply_to_message_id = $data['reply_to_message_id'] ?? null;
 
@@ -1337,7 +1338,8 @@ class DB
             $sth->bindValue(':action', $action);
             $sth->bindValue(':date', $date);
             $sth->bindValue(':reply_to_message_id', $reply_to_message_id);
-            $sth->bindValue(':text', json_encode($data, JSON_UNESCAPED_UNICODE));
+            $sth->bindValue(':text', $text);
+            $sth->bindValue(':data', json_encode($data, JSON_UNESCAPED_UNICODE));
 
             return $sth->execute();
         } catch (PDOException $e) {
