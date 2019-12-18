@@ -486,6 +486,8 @@ class Request
         $request_params['debug'] = TelegramLog::getDebugLogTempStream();
 
         try {
+            DB::insertOutputMessage($action, $data);
+
             $response = self::$client->post(
                 '/bot' . self::$telegram->getApiKey() . '/' . $action,
                 $request_params

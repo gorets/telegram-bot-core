@@ -1300,4 +1300,48 @@ class DB
             throw new TelegramException($e->getMessage());
         }
     }
+
+
+    /**
+     * Insert Output Message in db
+     *
+     * @param string $action
+     * @param array $data
+     * @return bool
+     * @throws TelegramException
+     */
+    public static function insertOutputMessage(string $action, array $data)
+    {
+        if (!self::isDbConnected()) {
+            return false;
+        }
+
+        try {
+            $sth = self::$pdo->prepare('
+                INSERT IGNORE INTO `message_output`
+                (
+                    `chat_id`, `user_id`, `action`, `date`, `reply_to_message_id`, `text`
+                ) VALUES (
+                    :chat_id, :user_id, :action, :date, :reply_to_message_id, :text
+                )
+            ');
+
+            $user_id = null;
+            $date    = date('Y-m-d H:i:s');
+
+            $chat_id = $data['chat_id'] ?? null;
+            $reply_to_message_id = $data['reply_to_message_id'] ?? null;
+
+            $sth->bindValue(':chat_id', $chat_id);
+            $sth->bindValue(':user_id', $user_id);
+            $sth->bindValue(':action', $action);
+            $sth->bindValue(':date', $date);
+            $sth->bindValue(':reply_to_message_id', $reply_to_message_id);
+            $sth->bindValue(':text', json_encode($data, JSON_UNESCAPED_UNICODE));
+
+            return $sth->execute();
+        } catch (PDOException $e) {
+            throw new TelegramException($e->getMessage());
+        }
+    }
 }
