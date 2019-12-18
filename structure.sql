@@ -290,13 +290,13 @@ CREATE TABLE IF NOT EXISTS `message_output` (
     `user_id` bigint NULL COMMENT 'Unique user identifier',
     `action` char(50) DEFAULT NULL COMMENT 'Action name',
     `date` timestamp NULL DEFAULT NULL COMMENT 'Date the message was sent in timestamp format',
-    `reply_to_message` bigint UNSIGNED DEFAULT NULL COMMENT 'Message that this message is reply to',
+    `reply_to_message_id` bigint UNSIGNED DEFAULT NULL COMMENT 'Message that this message is reply to',
     `text` TEXT COMMENT 'For text messages, the actual UTF-8 text of the message max message length 4096 char utf8mb4',
 
     PRIMARY KEY (`id`),
     KEY `chat_id` (`chat_id`),
     KEY `user_id` (`user_id`),
-    KEY `reply_to_message` (`reply_to_message`),
+    KEY `reply_to_message` (`reply_to_message_id`),
     KEY `date` (`date`),
 
     FOREIGN KEY (`user_id`) REFERENCES `user` (`id`),
