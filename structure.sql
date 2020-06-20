@@ -80,6 +80,7 @@ CREATE TABLE IF NOT EXISTS `message` (
   `forward_date` timestamp NULL DEFAULT NULL COMMENT 'date the original message was sent in timestamp format',
   `reply_to_chat` bigint NULL DEFAULT NULL COMMENT 'Unique chat identifier',
   `reply_to_message` bigint UNSIGNED DEFAULT NULL COMMENT 'Message that this message is reply to',
+  `via_bot` bigint NULL DEFAULT NULL COMMENT 'Optional. Bot through which the message was sent',
   `edit_date` bigint UNSIGNED DEFAULT NULL COMMENT 'Date the message was last edited in Unix time',
   `media_group_id` TEXT COMMENT 'The unique identifier of a media message group this message belongs to',
   `author_signature` TEXT COMMENT 'Signature of the post author for messages in channels',
@@ -100,6 +101,7 @@ CREATE TABLE IF NOT EXISTS `message` (
   `location` TEXT COMMENT 'Location object. Message is a shared location, information about the location',
   `venue` TEXT COMMENT 'Venue object. Message is a Venue, information about the Venue',
   `poll` TEXT COMMENT 'Poll object. Message is a native poll, information about the poll',
+  `dice` TEXT COMMENT 'Message is a dice with random value from 1 to 6',
   `new_chat_members` TEXT COMMENT 'List of unique user identifiers, new member(s) were added to the group, information about them (one of these members may be the bot itself)',
   `left_chat_member` bigint NULL DEFAULT NULL COMMENT 'Unique user identifier, a member was removed from the group, information about them (this member may be the bot itself)',
   `new_chat_title` CHAR(255) DEFAULT NULL COMMENT 'A chat title was changed to this value',
@@ -123,6 +125,7 @@ CREATE TABLE IF NOT EXISTS `message` (
   KEY `forward_from_chat` (`forward_from_chat`),
   KEY `reply_to_chat` (`reply_to_chat`),
   KEY `reply_to_message` (`reply_to_message`),
+  KEY `via_bot` (`via_bot`),
   KEY `left_chat_member` (`left_chat_member`),
   KEY `migrate_from_chat_id` (`migrate_from_chat_id`),
   KEY `migrate_to_chat_id` (`migrate_to_chat_id`),
@@ -132,7 +135,7 @@ CREATE TABLE IF NOT EXISTS `message` (
   FOREIGN KEY (`forward_from`) REFERENCES `user` (`id`),
   FOREIGN KEY (`forward_from_chat`) REFERENCES `chat` (`id`),
   FOREIGN KEY (`reply_to_chat`, `reply_to_message`) REFERENCES `message` (`chat_id`, `id`),
-  FOREIGN KEY (`forward_from`) REFERENCES `user` (`id`),
+  FOREIGN KEY (`via_bot`) REFERENCES `user` (`id`),
   FOREIGN KEY (`left_chat_member`) REFERENCES `user` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
 
@@ -209,10 +212,29 @@ CREATE TABLE IF NOT EXISTS `poll` (
   `id` bigint UNSIGNED COMMENT 'Unique poll identifier',
   `question` char(255) NOT NULL COMMENT 'Poll question',
   `options` text NOT NULL COMMENT 'List of poll options',
+  `total_voter_count` int UNSIGNED COMMENT 'Total number of users that voted in the poll',
   `is_closed` tinyint(1) DEFAULT 0 COMMENT 'True, if the poll is closed',
+  `is_anonymous` tinyint(1) DEFAULT 1 COMMENT 'True, if the poll is anonymous',
+  `type` char(255) COMMENT 'Poll type, currently can be “regular” or “quiz”',
+  `allows_multiple_answers` tinyint(1) DEFAULT 0 COMMENT 'True, if the poll allows multiple answers',
+  `correct_option_id` int UNSIGNED COMMENT '0-based identifier of the correct answer option. Available only for polls in the quiz mode, which are closed, or was sent (not forwarded) by the bot or to the private chat with the bot.',
+  `explanation` varchar(255) DEFAULT NULL COMMENT 'Text that is shown when a user chooses an incorrect answer or taps on the lamp icon in a quiz-style poll, 0-200 characters',
+  `explanation_entities` text DEFAULT NULL COMMENT 'Special entities like usernames, URLs, bot commands, etc. that appear in the explanation',
+  `open_period` int UNSIGNED DEFAULT NULL COMMENT 'Amount of time in seconds the poll will be active after creation',
+  `close_date` timestamp NULL DEFAULT NULL COMMENT 'Point in time (Unix timestamp) when the poll will be automatically closed',
   `created_at` timestamp NULL DEFAULT NULL COMMENT 'Entry date creation',
 
   PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
+
+CREATE TABLE IF NOT EXISTS `poll_answer` (
+  `poll_id` bigint UNSIGNED COMMENT 'Unique poll identifier',
+  `user_id` bigint NOT NULL COMMENT 'The user, who changed the answer to the poll',
+  `option_ids` text NOT NULL COMMENT '0-based identifiers of answer options, chosen by the user. May be empty if the user retracted their vote.',
+  `created_at` timestamp NULL DEFAULT NULL COMMENT 'Entry date creation',
+
+  PRIMARY KEY (`poll_id`, `user_id`),
+  FOREIGN KEY (`poll_id`) REFERENCES `poll` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
 
 CREATE TABLE IF NOT EXISTS `telegram_update` (
@@ -228,6 +250,7 @@ CREATE TABLE IF NOT EXISTS `telegram_update` (
   `shipping_query_id` bigint UNSIGNED DEFAULT NULL COMMENT 'New incoming shipping query. Only for invoices with flexible price',
   `pre_checkout_query_id` bigint UNSIGNED DEFAULT NULL COMMENT 'New incoming pre-checkout query. Contains full information about checkout',
   `poll_id` bigint UNSIGNED DEFAULT NULL COMMENT 'New poll state. Bots receive only updates about polls, which are sent or stopped by the bot',
+  `poll_answer_poll_id` bigint UNSIGNED DEFAULT NULL COMMENT 'A user changed their answer in a non-anonymous poll. Bots receive new votes only in polls that were sent by the bot itself.',
 
   PRIMARY KEY (`id`),
   KEY `message_id` (`message_id`),
@@ -241,6 +264,7 @@ CREATE TABLE IF NOT EXISTS `telegram_update` (
   KEY `shipping_query_id` (`shipping_query_id`),
   KEY `pre_checkout_query_id` (`pre_checkout_query_id`),
   KEY `poll_id` (`poll_id`),
+  KEY `poll_answer_poll_id` (`poll_answer_poll_id`),
 
   FOREIGN KEY (`chat_id`, `message_id`) REFERENCES `message` (`chat_id`, `id`),
   FOREIGN KEY (`edited_message_id`) REFERENCES `edited_message` (`id`),
@@ -251,7 +275,8 @@ CREATE TABLE IF NOT EXISTS `telegram_update` (
   FOREIGN KEY (`callback_query_id`) REFERENCES `callback_query` (`id`),
   FOREIGN KEY (`shipping_query_id`) REFERENCES `shipping_query` (`id`),
   FOREIGN KEY (`pre_checkout_query_id`) REFERENCES `pre_checkout_query` (`id`),
-  FOREIGN KEY (`poll_id`) REFERENCES `poll` (`id`)
+  FOREIGN KEY (`poll_id`) REFERENCES `poll` (`id`),
+  FOREIGN KEY (`poll_answer_poll_id`) REFERENCES `poll_answer` (`poll_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
 
 CREATE TABLE IF NOT EXISTS `conversation` (

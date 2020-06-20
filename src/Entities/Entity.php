@@ -128,7 +128,7 @@ abstract class Entity
     public function __call($method, $args)
     {
         //Convert method to snake_case (which is the name of the property)
-        $property_name = strtolower(ltrim(preg_replace('/[A-Z]/', '_$0', substr($method, 3)), '_'));
+        $property_name = mb_strtolower(ltrim(preg_replace('/[A-Z]/', '_$0', substr($method, 3)), '_'));
 
         $action = substr($method, 0, 3);
         if ($action === 'get') {
@@ -193,13 +193,15 @@ abstract class Entity
     }
 
     /**
-     * Escape markdown special characters
+     * Escape markdown (v1) special characters
+     *
+     * @see https://core.telegram.org/bots/api#markdown-style
      *
      * @param string $string
      *
      * @return string
      */
-    public function escapeMarkdown($string)
+    public static function escapeMarkdown($string)
     {
         return str_replace(
             ['[', '`', '*', '_',],
@@ -209,10 +211,30 @@ abstract class Entity
     }
 
     /**
+     * Escape markdown (v2) special characters
+     *
+     * @see https://core.telegram.org/bots/api#markdownv2-style
+     *
+     * @param string $string
+     *
+     * @return string
+     */
+    public static function escapeMarkdownV2($string)
+    {
+        return str_replace(
+            ['_', '*', '[', ']', '(', ')', '~', '`', '>', '#', '+', '-', '=', '|', '{', '}', '.', '!'],
+            ['\_', '\*', '\[', '\]', '\(', '\)', '\~', '\`', '\>', '\#', '\+', '\-', '\=', '\|', '\{', '\}', '\.', '\!'],
+            $string
+        );
+    }
+
+    /**
      * Try to mention the user
      *
      * Mention the user with the username otherwise print first and last name
      * if the $escape_markdown argument is true special characters are escaped from the output
+     *
+     * @todo What about MarkdownV2?
      *
      * @param bool $escape_markdown
      *
@@ -239,7 +261,7 @@ abstract class Entity
         }
 
         if ($escape_markdown) {
-            $name = $this->escapeMarkdown($name);
+            $name = self::escapeMarkdown($name);
         }
 
         return ($is_username ? '@' : '') . $name;

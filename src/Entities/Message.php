@@ -31,7 +31,8 @@ use Longman\TelegramBot\Entities\TelegramPassport\PassportData;
  * @method string            getForwardSignature()      Optional. For messages forwarded from channels, signature of the post author if present
  * @method string            getForwardSenderName()     Optional. Sender's name for messages forwarded from users who disallow adding a link to their account in forwarded messages
  * @method int               getForwardDate()           Optional. For forwarded messages, date the original message was sent in Unix time
- * @method Message           getReplyToMessage()        Optional. For replies, the original message. Note that the Message object in this field will not contain further reply_to_message fields even if it itself is a reply.
+ * @method ReplyToMessage    getReplyToMessage()        Optional. For replies, the original message. Note that the Message object in this field will not contain further reply_to_message fields even if it itself is a reply.
+ * @method User              getViaBot()                Optional. Bot through which the message was sent
  * @method int               getEditDate()              Optional. Date the message was last edited in Unix time
  * @method string            getMediaGroupId()          Optional. The unique identifier of a media message group this message belongs to
  * @method string            getAuthorSignature()       Optional. Signature of the post author for messages in channels
@@ -51,6 +52,7 @@ use Longman\TelegramBot\Entities\TelegramPassport\PassportData;
  * @method Location          getLocation()              Optional. Message is a shared location, information about the location
  * @method Venue             getVenue()                 Optional. Message is a venue, information about the venue
  * @method Poll              getPoll()                  Optional. Message is a native poll, information about the poll
+ * @method Dice              getDice()                  Optional. Message is a dice with random value from 1 to 6
  * @method User[]            getNewChatMembers()        Optional. A new member(s) was added to the group, information about them (one of this members may be the bot itself)
  * @method User              getLeftChatMember()        Optional. A member was removed from the group, information about them (this member may be the bot itself)
  * @method string            getNewChatTitle()          Optional. A chat title was changed to this value
@@ -81,6 +83,7 @@ class Message extends Entity
             'forward_from'       => User::class,
             'forward_from_chat'  => Chat::class,
             'reply_to_message'   => ReplyToMessage::class,
+            'via_bot'            => User::class,
             'entities'           => [MessageEntity::class],
             'caption_entities'   => [MessageEntity::class],
             'audio'              => Audio::class,
@@ -96,6 +99,7 @@ class Message extends Entity
             'location'           => Location::class,
             'venue'              => Venue::class,
             'poll'               => Poll::class,
+            'dice'               => Dice::class,
             'new_chat_members'   => [User::class],
             'left_chat_member'   => User::class,
             'new_chat_photo'     => [PhotoSize::class],
@@ -206,8 +210,8 @@ class Message extends Entity
         $types = [
             'text',
             'audio',
-            'document',
             'animation',
+            'document',
             'game',
             'photo',
             'sticker',

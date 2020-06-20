@@ -7,7 +7,7 @@
 
 A Telegram Bot based on the official [Telegram Bot API]
 
-[![API Version](https://img.shields.io/badge/Bot%20API-4.4%20%28July%202019%29-32a2da.svg)](https://core.telegram.org/bots/api#july-29-2019)
+[![API Version](https://img.shields.io/badge/Bot%20API-4.9%20%28June%202020%29-32a2da.svg)](https://core.telegram.org/bots/api#june-4-2020)
 [![Join the bot support group on Telegram](https://img.shields.io/badge/telegram-@PHP__Telegram__Bot__Support-64659d.svg)](https://telegram.me/PHP_Telegram_Bot_Support)
 [![Donate](https://img.shields.io/badge/%F0%9F%92%99-Donate%20%2F%20Support%20Us-blue.svg)](#donate)
 
@@ -42,6 +42,7 @@ A Telegram Bot based on the official [Telegram Bot API]
     - [getUserProfilePhoto](#getuserprofilephoto)
     - [getFile and downloadFile](#getfile-and-downloadfile)
     - [Send message to all active chats](#send-message-to-all-active-chats)
+    - [Filter Update](#filter-update)
 - [Utils](#utils)
     - [MySQL storage (Recommended)](#mysql-storage-recommended)
         - [External Database connection](#external-database-connection)
@@ -76,7 +77,7 @@ This Bot aims to provide a platform where one can simply write a bot and have in
 
 The Bot can:
 - Retrieve updates with [webhook](#webhook-installation) and [getUpdates](#getupdates-installation) methods.
-- Supports all types and methods according to Telegram API 4.4 (July 2019).
+- Supports all types and methods according to Telegram Bot API 4.9 (June 2020).
 - Supports supergroups.
 - Handle commands in chat with other bots.
 - Manage Channel from the bot admin interface.
@@ -94,7 +95,7 @@ This code is available on [GitHub](https://github.com/php-telegram-bot/core). Pu
 ### Create your first bot
 
 1. Message [`@BotFather`](https://telegram.me/BotFather) with the following text: `/newbot`
-   
+
    If you don't know how to message by username, click the search field on your Telegram app and type `@BotFather`, where you should be able to initiate a conversation. Be careful not to send it to the wrong contact, because some users have similar usernames to `BotFather`.
 
    ![BotFather initial conversation](https://user-images.githubusercontent.com/9423417/60736229-bc2aeb80-9f45-11e9-8d35-5b53145347bc.png)
@@ -108,7 +109,7 @@ This code is available on [GitHub](https://github.com/php-telegram-bot/core). Pu
 3. Type whatever name you want for your bot.
 
 4. `@BotFather` replies with:
-    
+
     ```
     Good. Now let's choose a username for your bot. It must end in `bot`. Like this, for example: TetrisBot or tetris_bot.
     ```
@@ -413,6 +414,25 @@ $results = Request::sendToActiveChats(
 ```
 
 You can also broadcast a message to users, from the private chat with your bot. Take a look at the [admin commands](#admin-commands) below.
+
+#### Filter Update
+
+Update processing can be allowed or denied by defining a custom update filter.
+Let's say we only want to allow messages from a user with ID 428, we can do the following before handling the request:
+
+```php
+$telegram->setUpdateFilter(function (Update $update, Telegram $telegram, &$reason = 'Update denied by update_filter') {
+    $user_id = $update->getMessage()->getFrom()->getId();
+    if ($user_id === 428) {
+        return true;
+    }
+
+    $reason = "Invalid user with ID {$user_id}";
+    return false;
+});
+```
+
+The reason for denying an update can be defined with the `$reason` parameter. This text gets written to the debug log.
 
 ## Utils
 
