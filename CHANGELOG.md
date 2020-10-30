@@ -5,12 +5,29 @@ Exclamation symbols (:exclamation:) note something of importance e.g. breaking c
 
 ## [Unreleased]
 ### Notes
+- [:ledger: View file changes][Unreleased]
 ### Added
 ### Changed
 ### Deprecated
 ### Removed
 ### Fixed
 ### Security
+
+## [0.64.0] - 2020-10-04
+### Notes
+- [:ledger: View file changes][0.64.0]
+### Added
+- Support for Guzzle 7. (@KristobalJunta) (#1133)
+### Fixed
+- Correct SQL migration script for older versions of MySQL. (#1135)
+
+## [0.63.1] - 2020-06-24
+### Notes
+- [:ledger: View file changes][0.63.1]
+- This fixed version is necessary for Windows users.
+### Fixed
+- Regex in `getFileNamespace()` that introduced a breaking bug in #1114. (@jacklul) (#1115)
+- Fixed `runCommands()` not working due to custom namespace feature. (@jacklul) (#1115, #1118)
 
 ## [0.63.0] - 2020-06-17
 ### Notes
@@ -479,6 +496,8 @@ Exclamation symbols (:exclamation:) note something of importance e.g. breaking c
 [Tidelift]: https://tidelift.com/subscription/pkg/packagist-longman-telegram-bot?utm_source=packagist-longman-telegram-bot&utm_medium=referral&utm_campaign=changelog
 
 [Unreleased]: https://github.com/php-telegram-bot/core/compare/master...develop
+[0.64.0]: https://github.com/php-telegram-bot/core/compare/0.63.1...0.64.0
+[0.63.1]: https://github.com/php-telegram-bot/core/compare/0.63.0...0.63.1
 [0.63.0]: https://github.com/php-telegram-bot/core/compare/0.62.0...0.63.0
 [0.62.0]: https://github.com/php-telegram-bot/core/compare/0.61.1...0.62.0
 [0.61.1]: https://github.com/php-telegram-bot/core/compare/0.61.0...0.61.1
